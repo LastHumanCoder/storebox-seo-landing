@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Generate Storebox landing pages (SEO-for + Learn) from content dicts + one shared design system.
+Matches the approved seo-for-law-firms.html. Self-contained HTML per page. Run: python3 build.py"""
+import pathlib, html
+HERE = pathlib.Path(__file__).resolve().parent
+
+CSS = """
+:root{--brand:#FF6B2C;--brand-light:#FFF3EC;--accent:#FFA149;--ink:#16161A;--ink-muted:#4A4F5C;--neutral:#858B98;
+--bg:#FFFFFF;--bg1:#F7F9FC;--bg3:#E6EAF1;--line:#E6EAF1;--inverse:#0E1A2B;--green:#0fa966;
+--hero-grad:linear-gradient(135deg,#1A1612,#2A221C,#431407);--serif:'Instrument Serif',Georgia,serif;--sans:Inter,system-ui,sans-serif;
+--r-md:12px;--r-lg:16px;--r-full:9999px;--wrap:1120px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.08;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(38px,5vw,60px)}h2{font-size:clamp(28px,3.6vw,40px)}
+p{margin:0 0 12px}a{color:var(--brand);text-decoration:none}
+.eyebrow{font-family:var(--sans);font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.lead{font-size:19px;color:var(--ink-muted)}.muted{color:var(--ink-muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:16px;padding:13px 24px;border-radius:var(--r-full);border:1px solid transparent;cursor:pointer;transition:filter .15s,background .15s}
+.btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{filter:brightness(.93)}
+.btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}.btn-ghost:hover{background:rgba(255,255,255,.08)}
+.btn-outline{background:#fff;color:var(--ink);border-color:var(--line)}.btn-outline:hover{background:var(--bg1)}
+.hdr{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hdr .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-family:var(--serif);font-size:24px;color:var(--ink)}.logo b{color:var(--brand)}
+.hero{background:var(--hero-grad);color:#F4F8FF;padding:64px 0;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;inset:0;background:radial-gradient(800px 360px at 80% 0,rgba(255,107,44,.22),transparent 60%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;position:relative;z-index:1}
+.hero .eyebrow{color:var(--accent)}.hero h1{color:#fff;margin:12px 0 14px}.hero .lead{color:#F4F8FF;opacity:.9;max-width:46ch}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.trust{margin-top:18px;font-size:13.5px;color:#a8c7ff;display:flex;gap:16px;flex-wrap:wrap}
+.hero-media{border-radius:var(--r-lg);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);position:relative}
+.hero-media img{display:block;width:100%;height:100%;object-fit:cover}
+.hero-media .pill{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,.95);color:var(--ink);font-size:13px;font-weight:600;padding:8px 14px;border-radius:var(--r-full);box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.hero-media .pill b{color:var(--green)}
+.section{padding:64px 0}.section.alt{background:var(--bg1)}
+.section-head{max-width:660px;margin-bottom:34px}.section-head h2{margin:8px 0}
+.grid{display:grid;gap:18px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px}.section.alt .card{background:#fff}
+.card .ic{width:40px;height:40px;border-radius:var(--r-md);background:var(--brand-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:var(--brand)}
+.card h3{font-family:var(--sans);font-weight:700;font-size:17px;margin-bottom:6px}.card p{font-size:15px;color:var(--ink-muted);margin:0}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s}
+.step{position:relative;padding-top:50px}
+.step:before{counter-increment:s;content:counter(s);position:absolute;top:0;left:0;width:36px;height:36px;border-radius:var(--r-full);background:var(--ink);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step h3{font-family:var(--sans);font-weight:700;font-size:16px;margin-bottom:4px}.step p{font-size:14.5px;color:var(--ink-muted);margin:0}
+.band-split{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.band-split img{width:100%;border-radius:var(--r-lg);display:block;box-shadow:0 16px 40px rgba(14,26,43,.14)}
+.callout{background:var(--brand-light);border-left:4px solid var(--brand);border-radius:var(--r-md);padding:14px 18px;color:#7a3b1b;font-size:15px;margin-top:14px}
+.engines{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.engine{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:var(--r-full);padding:10px 18px;font-weight:600;font-size:15px}
+.engine .dot{width:9px;height:9px;border-radius:var(--r-full);background:var(--brand)}
+.plan{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;display:flex;flex-direction:column}
+.plan.feat{border-color:var(--brand);box-shadow:0 8px 30px rgba(255,107,44,.12)}
+.plan .tag{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand)}
+.plan h3{font-family:var(--sans);font-weight:800;font-size:19px;margin:6px 0 12px}
+.plan ul{list-style:none;padding:0;margin:0 0 20px}.plan li{font-size:14.5px;color:var(--ink-muted);padding:6px 0 6px 24px;position:relative}
+.plan li:before{content:"";position:absolute;left:0;top:12px;width:13px;height:7px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
+.plan .btn{margin-top:auto;justify-content:center}
+.ltable{width:100%;border-collapse:collapse;font-size:15px;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.ltable th,.ltable td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.ltable thead th{background:var(--bg1);font-family:var(--sans);font-weight:700;color:var(--ink)}
+.ltable td:first-child,.ltable th:first-child{font-weight:600;color:var(--ink)}.ltable td{color:var(--ink-muted)}
+.checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.checklist li{position:relative;padding-left:32px;font-size:16px;color:var(--ink-muted)}
+.checklist li:before{content:"";position:absolute;left:4px;top:7px;width:13px;height:7px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;font-weight:600;font-size:17px;padding:16px 0;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}.faq summary:after{content:"+";color:var(--brand);font-weight:700;font-size:21px;line-height:1}
+.faq details[open] summary:after{content:"\\2013"}.faq .ans{padding:0 0 16px;color:var(--ink-muted);font-size:15.5px;max-width:74ch}
+.band{background:var(--hero-grad);color:#fff;border-radius:var(--r-lg);padding:50px 40px;text-align:center;position:relative;overflow:hidden}
+.band:after{content:"";position:absolute;inset:0;background:radial-gradient(600px 260px at 50% -40%,rgba(255,107,44,.28),transparent 60%)}
+.band h2{color:#fff;position:relative}.band p{color:#F4F8FF;opacity:.9;max-width:48ch;margin:10px auto 22px;position:relative}.band .btn{position:relative}
+.byline{display:flex;align-items:center;gap:12px;margin-top:26px;color:var(--ink-muted);font-size:14px}.byline .av{width:38px;height:38px;border-radius:var(--r-full);background:var(--bg3)}
+.ftr{background:var(--inverse);color:#a8c7ff;padding:42px 0;font-size:14.5px}.ftr a{color:#F4F8FF}
+.ftr .cols{display:flex;gap:40px;flex-wrap:wrap;justify-content:space-between}.ftr h4{font-family:var(--sans);color:#fff;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px}
+.ftr ul{list-style:none;padding:0;margin:0}.ftr li{margin:7px 0}
+@media(max-width:860px){.hero-grid,.band-split,.g2{grid-template-columns:1fr}.g4,.g3,.steps{grid-template-columns:repeat(2,1fr)}.hero-media{order:-1}}
+@media(max-width:560px){.g4,.g3,.steps{grid-template-columns:1fr}.section{padding:48px 0}}
+"""
+
+ICONS = {
+ "doc":'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
+ "pin":'<path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+ "chat":'<path d="M4 5h16v11H8l-4 4z"/>',
+ "chart":'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ "check":'<path d="M20 6 9 17l-5-5"/>',
+ "pages":'<rect x="3" y="4" width="14" height="16" rx="1"/><path d="M7 4V2m4 2V2m-4 20v-2m4 2v-2M21 8h-4m4 4h-4m4 4h-4"/>',
+ "map":'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+ "shield":'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+ "truck":'<path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+ "swap":'<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+ "spark":'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
+ "code":'<path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/>',
+}
+def icon(k): return f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">{ICONS.get(k,ICONS["check"])}</svg>'
+def e(s): return html.escape(s)
+
+HEAD = """<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title><meta name="description" content="{desc}">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>{css}</style></head><body>
+<header class="hdr"><div class="wrap"><a class="logo" href="https://www.storebox.ai/">Store<b>box</b></a>
+<a class="btn btn-primary" href="https://www.storebox.ai/contact">Get Free Proposal</a></div></header>"""
+
+FOOT = """<footer class="ftr"><div class="wrap"><div class="cols">
+<div style="max-width:320px"><div class="logo" style="color:#fff">Store<b style="color:var(--brand)">box</b></div>
+<p style="margin:12px 0 0;color:#a8c7ff">Websites, stores and SEO/AEO content for business owners.</p></div>
+<div><h4>{col_t}</h4><ul>{rel}</ul></div>
+<div><h4>Company</h4><ul><li><a href="https://www.storebox.ai/">Home</a></li><li><a href="https://www.storebox.ai/pricing">Pricing</a></li><li><a href="https://www.storebox.ai/contact">Contact</a></li></ul></div>
+</div></div></footer></body></html>"""
+
+ENGINES = ('<div class="engines"><span class="engine"><span class="dot"></span>ChatGPT</span>'
+ '<span class="engine"><span class="dot"></span>Google AI Overviews</span>'
+ '<span class="engine"><span class="dot"></span>Perplexity</span>'
+ '<span class="engine"><span class="dot"></span>Gemini</span></div>')
+
+def rel_links(items): return "".join(f'<li><a href="{u}">{e(t)}</a></li>' for t,u in items)
+
+def render_seofor(d):
+    cards="".join(f'<div class="card"><div class="ic">{icon(ic)}</div><h3>{e(h)}</h3><p>{e(p)}</p></div>' for ic,h,p in d["cards"])
+    steps="".join(f'<div class="step"><h3>{e(h)}</h3><p>{e(p)}</p></div>' for h,p in d["steps"])
+    plans="".join(
+      f'<div class="plan{" feat" if i==1 else ""}"><div class="tag">{e(t)}</div><h3>{e(h)}</h3><ul>'
+      +"".join(f"<li>{e(b)}</li>" for b in bl)+f'</ul><a class="btn {"btn-primary" if i==1 else "btn-outline"}" href="https://www.storebox.ai/pricing">{e(cta)}</a></div>'
+      for i,(t,h,bl,cta) in enumerate(d["plans"]))
+    faq="".join(f'<details{" open" if i==0 else ""}><summary>{e(q)}</summary><div class="ans">{e(a)}</div></details>' for i,(q,a) in enumerate(d["faq"]))
+    b=d["band"]
+    body=f"""
+<section class="hero"><div class="wrap"><div class="hero-grid"><div>
+<div class="eyebrow">{e(d['eyebrow'])}</div><h1>{e(d['h1'])}</h1><p class="lead">{e(d['hero_sub'])}</p>
+<div class="hero-cta"><a class="btn btn-primary" href="https://www.storebox.ai/contact">{e(d['cta_primary'])}</a>
+<a class="btn btn-ghost" href="https://www.storebox.ai/pricing">See pricing</a></div>
+<div class="trust">{''.join(f'<span>&#10003; {e(x)}</span>' for x in d['trust'])}</div></div>
+<div class="hero-media"><img src="img/{d['slug']}.jpg" alt="{e(d['img_alt'])}"><div class="pill"><b>&#9679;</b>&nbsp; {e(d['pill'])}</div></div>
+</div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">What we build</div><h2>{e(d['build_h2'])}</h2></div><div class="grid g4">{cards}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">How it works</div><h2>From free proposal to monthly report</h2></div><div class="steps">{steps}</div></div></section>
+<section class="section"><div class="wrap"><div class="band-split"><img src="img/{d['slug']}.jpg" alt="{e(d['img_alt'])}"><div>
+<div class="eyebrow">{e(b['eyebrow'])}</div><h2 style="margin:8px 0 12px">{e(b['h2'])}</h2><p class="muted">{e(b['p'])}</p>
+<div class="callout">{e(b['callout'])}</div></div></div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">Show up in AI answers</div><h2>{e(d['ai_h2'])}</h2><p class="lead muted">{e(d['ai_p'])}</p></div>{ENGINES}</div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">Plans</div><h2>{e(d['plans_h2'])}</h2><p class="lead muted">Described for how you use them. Scope and pricing live on the pricing page.</p></div><div class="grid g3">{plans}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">FAQ</div><h2>Common questions</h2></div><div class="faq">{faq}</div></div></section>
+<section class="section"><div class="wrap"><div class="band"><h2>{e(d['cta_h2'])}</h2><p>{e(d['cta_p'])}</p>
+<a class="btn btn-primary" href="https://www.storebox.ai/contact">{e(d['cta_primary'])}</a></div>
+<div class="byline"><div class="av"></div><div>Reviewed by the Storebox team &nbsp;&bull;&nbsp; <span style="color:var(--brand)">[named author + LinkedIn to add]</span></div></div></div></section>
+"""
+    return (HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body
+            +FOOT.format(col_t=d["footer_col"],rel=rel_links(d["related"])))
+
+def render_learn(d):
+    how="".join(f'<div class="card"><div class="ic">{icon(ic)}</div><h3>{e(h)}</h3><p>{e(p)}</p></div>' for ic,h,p in d["how"])
+    rows="".join("<tr>"+"".join(f"<td>{e(c)}</td>" for c in r)+"</tr>" for r in d["table"]["rows"])
+    thead="".join(f"<th>{e(h)}</th>" for h in d["table"]["head"])
+    checks="".join(f"<li>{e(x)}</li>" for x in d["check"])
+    mistakes="".join(f'<div class="card"><h3>{e(h)}</h3><p>{e(p)}</p></div>' for h,p in d["mistakes"])
+    faq="".join(f'<details{" open" if i==0 else ""}><summary>{e(q)}</summary><div class="ans">{e(a)}</div></details>' for i,(q,a) in enumerate(d["faq"]))
+    body=f"""
+<section class="hero"><div class="wrap"><div class="hero-grid"><div>
+<div class="eyebrow">Learn</div><h1>{e(d['h1'])}</h1><p class="lead">{e(d['definition'])}</p>
+<div class="hero-cta"><a class="btn btn-primary" href="https://www.storebox.ai/contact">Get a free SEO proposal</a>
+<a class="btn btn-ghost" href="index.html">All guides</a></div></div>
+<div class="hero-media"><img src="img/{d['slug']}.jpg" alt="{e(d['img_alt'])}"></div></div></div></section>
+<section class="section"><div class="wrap"><div class="g2" style="display:grid;gap:40px;align-items:start">
+<div><div class="eyebrow">In short</div><h2 style="margin:8px 0 12px">{e(d['short_h2'])}</h2><p class="muted">{e(d['short_p'])}</p></div>
+<div class="card" style="background:var(--bg1)"><div class="eyebrow">How it works</div><p class="muted" style="margin:10px 0 0">{e(d['how_intro'])}</p></div>
+</div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">In practice</div><h2>{e(d['how_h2'])}</h2></div><div class="grid g3">{how}</div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">Easily confused</div><h2>{e(d['table']['h2'])}</h2></div>
+<table class="ltable"><thead><tr>{thead}</tr></thead><tbody>{rows}</tbody></table></div></section>
+<section class="section alt"><div class="wrap"><div class="g2" style="display:grid;gap:40px;align-items:start">
+<div><div class="eyebrow">Check yours</div><h2 style="margin:8px 0 16px">{e(d['check_h2'])}</h2><ul class="checklist">{checks}</ul></div>
+<div><div class="eyebrow">Common mistakes</div><h2 style="margin:8px 0 16px">{e(d['mistakes_h2'])}</h2><div class="grid" style="gap:14px">{mistakes}</div></div>
+</div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">FAQ</div><h2>Common questions</h2></div><div class="faq">{faq}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="band"><h2>{e(d['cta_h2'])}</h2><p>{e(d['cta_p'])}</p>
+<a class="btn btn-primary" href="https://www.storebox.ai/contact">Get a free proposal</a></div>
+<div class="byline"><div class="av"></div><div>Reviewed by the Storebox team &nbsp;&bull;&nbsp; <span style="color:var(--brand)">[named author + LinkedIn to add]</span></div></div></div></section>
+"""
+    return (HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body
+            +FOOT.format(col_t="Learn",rel=rel_links(d["related"])))
+
+# ---- import content ----
+from content import SEOFOR, LEARN
+
+def main():
+    for d in SEOFOR:
+        (HERE/f"{d['slug']}.html").write_text(render_seofor(d)); print("seo-for:",d['slug'])
+    for d in LEARN:
+        (HERE/f"{d['slug']}.html").write_text(render_learn(d)); print("learn:  ",d['slug'])
+    print("done")
+
+if __name__=="__main__": main()
