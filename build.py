@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Generate Storebox landing pages (SEO-for + Learn) from content dicts + one shared design system.
-Matches the approved seo-for-law-firms.html. Self-contained HTML per page. Run: python3 build.py"""
+Self-contained HTML per page. Run: python3 build.py"""
 import pathlib, html
 HERE = pathlib.Path(__file__).resolve().parent
 
 CSS = """
 :root{--brand:#FF6B2C;--brand-light:#FFF3EC;--accent:#FFA149;--ink:#16161A;--ink-muted:#4A4F5C;--neutral:#858B98;
---bg:#FFFFFF;--bg1:#F7F9FC;--bg3:#E6EAF1;--line:#E6EAF1;--inverse:#0E1A2B;--green:#0fa966;
+--bg:#FFFFFF;--bg1:#F7F9FC;--bg3:#E6EAF1;--line:#E6EAF1;--inverse:#0E1A2B;--green:#0fa966;--amber:#e8900a;
 --hero-grad:linear-gradient(135deg,#1A1612,#2A221C,#431407);--serif:'Instrument Serif',Georgia,serif;--sans:Inter,system-ui,sans-serif;
 --r-md:12px;--r-lg:16px;--r-full:9999px;--wrap:1120px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -34,7 +34,7 @@ p{margin:0 0 12px}a{color:var(--brand);text-decoration:none}
 .hero-media img{display:block;width:100%;height:100%;object-fit:cover}
 .hero-media .pill{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,.95);color:var(--ink);font-size:13px;font-weight:600;padding:8px 14px;border-radius:var(--r-full);box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .hero-media .pill b{color:var(--green)}
-.section{padding:64px 0}.section.alt{background:var(--bg1)}
+.section{padding:60px 0}.section.alt{background:var(--bg1)}
 .section-head{max-width:660px;margin-bottom:34px}.section-head h2{margin:8px 0}
 .grid{display:grid;gap:18px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
 .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px}.section.alt .card{background:#fff}
@@ -57,13 +57,40 @@ p{margin:0 0 12px}a{color:var(--brand);text-decoration:none}
 .plan ul{list-style:none;padding:0;margin:0 0 20px}.plan li{font-size:14.5px;color:var(--ink-muted);padding:6px 0 6px 24px;position:relative}
 .plan li:before{content:"";position:absolute;left:0;top:12px;width:13px;height:7px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
 .plan .btn{margin-top:auto;justify-content:center}
-.ltable{width:100%;border-collapse:collapse;font-size:15px;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
-.ltable th,.ltable td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-.ltable thead th{background:var(--bg1);font-family:var(--sans);font-weight:700;color:var(--ink)}
-.ltable td:first-child,.ltable th:first-child{font-weight:600;color:var(--ink)}.ltable td{color:var(--ink-muted)}
 .checklist{list-style:none;padding:0;margin:0;display:grid;gap:10px}
 .checklist li{position:relative;padding-left:32px;font-size:16px;color:var(--ink-muted)}
 .checklist li:before{content:"";position:absolute;left:4px;top:7px;width:13px;height:7px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
+.incl{display:grid;grid-template-columns:1fr 1fr;gap:12px 34px}
+.incl div{position:relative;padding-left:30px;color:var(--ink-muted);font-size:15.5px}
+.incl div:before{content:"";position:absolute;left:4px;top:8px;width:12px;height:7px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
+.ltable,.cmp{width:100%;border-collapse:collapse;font-size:15px;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.ltable th,.ltable td,.cmp th,.cmp td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.ltable thead th,.cmp thead th{background:var(--bg1);font-family:var(--sans);font-weight:700;color:var(--ink)}
+.ltable td:first-child,.ltable th:first-child,.cmp td:first-child,.cmp th:first-child{font-weight:600;color:var(--ink)}
+.ltable td{color:var(--ink-muted)}.cmp thead th:nth-child(2){color:var(--brand)}
+.cmp .yes{color:var(--green);font-weight:700}.cmp .no{color:var(--neutral)}
+.browser{border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 16px 40px rgba(14,26,43,.14);background:#fff}
+.browser .bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--bg1);border-bottom:1px solid var(--line)}
+.browser .bar i{width:10px;height:10px;border-radius:50%;background:#dfe4ec;display:inline-block}
+.browser .url{margin-left:10px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--neutral);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browser .screen{padding:20px}
+.mk-hero{background:var(--hero-grad);color:#fff;border-radius:10px;padding:18px}
+.mk-hero .e{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.mk-hero h4{font-family:var(--serif);font-weight:400;font-size:22px;margin:6px 0 12px;color:#fff}
+.mk-btn{display:inline-block;background:var(--brand);color:#fff;font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px}
+.mk-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.mk-chip{background:var(--bg1);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--ink-muted)}
+.ex-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgba(14,26,43,.12);background:#fff}
+.ex-head{background:var(--bg1);border-bottom:1px solid var(--line);padding:12px 16px;font-size:13px;color:var(--neutral)}
+.ex-row{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);align-items:center}.ex-row:last-child{border-bottom:0}
+.mapsq{width:46px;height:46px;border-radius:8px;background:linear-gradient(135deg,#dcebfe,#eef4ff);flex:0 0 46px;position:relative}
+.mapsq:after{content:"";position:absolute;left:50%;top:42%;width:10px;height:10px;background:var(--brand);border-radius:50% 50% 50% 0;transform:translate(-50%,-50%) rotate(-45deg)}
+.ex-row .nm{font-weight:700;font-size:15px}.ex-row .meta{font-size:12.5px;color:var(--neutral)}.stars{color:var(--amber)}
+.ex-q{padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600}
+.ex-a{padding:14px 16px;color:var(--ink-muted);font-size:15px}
+.ex-src{padding:11px 16px;background:var(--bg1);font-size:12.5px;color:var(--neutral)}.ex-src b{color:var(--brand)}
+.ex-code{background:#0E1A2B;color:#cfe0ff;border-radius:14px;padding:20px 22px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.7;overflow-x:auto;box-shadow:0 12px 32px rgba(14,26,43,.18);white-space:pre}
+.ex-code .k{color:#FFA149}.ex-code .s{color:#8fd3a6}.ex-code .c{color:#6b7a90}
 .faq details{border-bottom:1px solid var(--line)}
 .faq summary{list-style:none;cursor:pointer;font-weight:600;font-size:17px;padding:16px 0;display:flex;justify-content:space-between;gap:16px}
 .faq summary::-webkit-details-marker{display:none}.faq summary:after{content:"+";color:var(--brand);font-weight:700;font-size:21px;line-height:1}
@@ -75,28 +102,20 @@ p{margin:0 0 12px}a{color:var(--brand);text-decoration:none}
 .ftr{background:var(--inverse);color:#a8c7ff;padding:42px 0;font-size:14.5px}.ftr a{color:#F4F8FF}
 .ftr .cols{display:flex;gap:40px;flex-wrap:wrap;justify-content:space-between}.ftr h4{font-family:var(--sans);color:#fff;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px}
 .ftr ul{list-style:none;padding:0;margin:0}.ftr li{margin:7px 0}
-@media(max-width:860px){.hero-grid,.band-split,.g2{grid-template-columns:1fr}.g4,.g3,.steps{grid-template-columns:repeat(2,1fr)}.hero-media{order:-1}}
-@media(max-width:560px){.g4,.g3,.steps{grid-template-columns:1fr}.section{padding:48px 0}}
+@media(max-width:860px){.hero-grid,.band-split,.g2,.incl{grid-template-columns:1fr}.g4,.g3,.steps{grid-template-columns:repeat(2,1fr)}.hero-media{order:-1}}
+@media(max-width:560px){.g4,.g3,.steps{grid-template-columns:1fr}.section{padding:46px 0}}
 """
 
-ICONS = {
- "doc":'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
- "pin":'<path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
- "chat":'<path d="M4 5h16v11H8l-4 4z"/>',
- "chart":'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
- "check":'<path d="M20 6 9 17l-5-5"/>',
- "pages":'<rect x="3" y="4" width="14" height="16" rx="1"/><path d="M7 4V2m4 2V2m-4 20v-2m4 2v-2M21 8h-4m4 4h-4m4 4h-4"/>',
- "map":'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
- "shield":'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
- "truck":'<path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
- "swap":'<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
- "spark":'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
- "code":'<path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/>',
-}
+ICONS={"doc":'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',"pin":'<path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+"chat":'<path d="M4 5h16v11H8l-4 4z"/>',"chart":'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',"check":'<path d="M20 6 9 17l-5-5"/>',
+"pages":'<rect x="3" y="4" width="14" height="16" rx="1"/><path d="M7 4V2m4 2V2m-4 20v-2m4 2v-2M21 8h-4m4 4h-4m4 4h-4"/>',
+"map":'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',"shield":'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+"truck":'<path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',"swap":'<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+"spark":'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',"code":'<path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/>'}
 def icon(k): return f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">{ICONS.get(k,ICONS["check"])}</svg>'
 def e(s): return html.escape(s)
 
-HEAD = """<!doctype html><html lang="en"><head>
+HEAD="""<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title><meta name="description" content="{desc}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,26 +123,40 @@ HEAD = """<!doctype html><html lang="en"><head>
 <style>{css}</style></head><body>
 <header class="hdr"><div class="wrap"><a class="logo" href="https://www.storebox.ai/">Store<b>box</b></a>
 <a class="btn btn-primary" href="https://www.storebox.ai/contact">Get Free Proposal</a></div></header>"""
-
-FOOT = """<footer class="ftr"><div class="wrap"><div class="cols">
+FOOT="""<footer class="ftr"><div class="wrap"><div class="cols">
 <div style="max-width:320px"><div class="logo" style="color:#fff">Store<b style="color:var(--brand)">box</b></div>
 <p style="margin:12px 0 0;color:#a8c7ff">Websites, stores and SEO/AEO content for business owners.</p></div>
 <div><h4>{col_t}</h4><ul>{rel}</ul></div>
 <div><h4>Company</h4><ul><li><a href="https://www.storebox.ai/">Home</a></li><li><a href="https://www.storebox.ai/pricing">Pricing</a></li><li><a href="https://www.storebox.ai/contact">Contact</a></li></ul></div>
 </div></div></footer></body></html>"""
-
-ENGINES = ('<div class="engines"><span class="engine"><span class="dot"></span>ChatGPT</span>'
+ENGINES=('<div class="engines"><span class="engine"><span class="dot"></span>ChatGPT</span>'
  '<span class="engine"><span class="dot"></span>Google AI Overviews</span>'
- '<span class="engine"><span class="dot"></span>Perplexity</span>'
- '<span class="engine"><span class="dot"></span>Gemini</span></div>')
-
+ '<span class="engine"><span class="dot"></span>Perplexity</span><span class="engine"><span class="dot"></span>Gemini</span></div>')
+WHY_US=[("Facts approved by you before anything is published","Often writes and publishes without sign-off"),
+ ("Real pages, written for each trade","Mass-produced, city-swapped templates"),
+ ("Built, hosted and maintained in one place","SEO only; you are left to run the site"),
+ ("AEO/GEO so AI answers cite you","Rarely included"),
+ ("Honest reporting, no ranking guarantees","Promises first-page rankings"),
+ ("A scoped proposal, no long lock-in","Long contracts before any results")]
 def rel_links(items): return "".join(f'<li><a href="{u}">{e(t)}</a></li>' for t,u in items)
+
+def browser_mock(m):
+    chips="".join(f'<span class="mk-chip">{e(x)}</span>' for x in m["items"])
+    return (f'<div class="browser"><div class="bar"><i></i><i></i><i></i><div class="url">{e(m["url"])}</div></div>'
+            f'<div class="screen"><div class="mk-hero"><div class="e">{e(m["eyebrow"])}</div><h4>{e(m["title"])}</h4>'
+            f'<span class="mk-btn">{e(m["cta"])}</span></div><div class="mk-row">{chips}</div></div></div>')
+
+def why_section(h2):
+    rows="".join(f'<tr><td>{e(a)}</td><td class="yes">&#10003;</td><td class="no">{e(b)}</td></tr>' for a,b in WHY_US)
+    return (f'<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">Why Storebox</div><h2>{e(h2)}</h2></div>'
+            f'<table class="cmp"><thead><tr><th></th><th>Storebox</th><th>Typical SEO agency</th></tr></thead><tbody>{rows}</tbody></table></div></section>')
 
 def render_seofor(d):
     cards="".join(f'<div class="card"><div class="ic">{icon(ic)}</div><h3>{e(h)}</h3><p>{e(p)}</p></div>' for ic,h,p in d["cards"])
+    anat_pts="".join(f"<li>{e(x)}</li>" for x in d["anatomy"]["points"])
     steps="".join(f'<div class="step"><h3>{e(h)}</h3><p>{e(p)}</p></div>' for h,p in d["steps"])
-    plans="".join(
-      f'<div class="plan{" feat" if i==1 else ""}"><div class="tag">{e(t)}</div><h3>{e(h)}</h3><ul>'
+    incl="".join(f"<div>{e(x)}</div>" for x in d["included"])
+    plans="".join(f'<div class="plan{" feat" if i==1 else ""}"><div class="tag">{e(t)}</div><h3>{e(h)}</h3><ul>'
       +"".join(f"<li>{e(b)}</li>" for b in bl)+f'</ul><a class="btn {"btn-primary" if i==1 else "btn-outline"}" href="https://www.storebox.ai/pricing">{e(cta)}</a></div>'
       for i,(t,h,bl,cta) in enumerate(d["plans"]))
     faq="".join(f'<details{" open" if i==0 else ""}><summary>{e(q)}</summary><div class="ans">{e(a)}</div></details>' for i,(q,a) in enumerate(d["faq"]))
@@ -137,10 +170,14 @@ def render_seofor(d):
 <div class="hero-media"><img src="img/{d['slug']}.jpg" alt="{e(d['img_alt'])}"><div class="pill"><b>&#9679;</b>&nbsp; {e(d['pill'])}</div></div>
 </div></div></section>
 <section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">What we build</div><h2>{e(d['build_h2'])}</h2></div><div class="grid g4">{cards}</div></div></section>
-<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">How it works</div><h2>From free proposal to monthly report</h2></div><div class="steps">{steps}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="band-split"><div>
+<div class="eyebrow">Built right</div><h2 style="margin:8px 0 16px">{e(d['anatomy']['h2'])}</h2><ul class="checklist">{anat_pts}</ul></div>
+{browser_mock(d['anatomy']['mock'])}</div></div></section>
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">How it works</div><h2>From free proposal to monthly report</h2></div><div class="steps">{steps}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">What's included</div><h2>{e(d['included_h2'])}</h2></div><div class="incl">{incl}</div></div></section>
 <section class="section"><div class="wrap"><div class="band-split"><img src="img/{d['slug']}.jpg" alt="{e(d['img_alt'])}"><div>
-<div class="eyebrow">{e(b['eyebrow'])}</div><h2 style="margin:8px 0 12px">{e(b['h2'])}</h2><p class="muted">{e(b['p'])}</p>
-<div class="callout">{e(b['callout'])}</div></div></div></div></section>
+<div class="eyebrow">{e(b['eyebrow'])}</div><h2 style="margin:8px 0 12px">{e(b['h2'])}</h2><p class="muted">{e(b['p'])}</p><div class="callout">{e(b['callout'])}</div></div></div></div></section>
+{why_section(d['why_h2'])}
 <section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">Show up in AI answers</div><h2>{e(d['ai_h2'])}</h2><p class="lead muted">{e(d['ai_p'])}</p></div>{ENGINES}</div></section>
 <section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">Plans</div><h2>{e(d['plans_h2'])}</h2><p class="lead muted">Described for how you use them. Scope and pricing live on the pricing page.</p></div><div class="grid g3">{plans}</div></div></section>
 <section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">FAQ</div><h2>Common questions</h2></div><div class="faq">{faq}</div></div></section>
@@ -148,8 +185,19 @@ def render_seofor(d):
 <a class="btn btn-primary" href="https://www.storebox.ai/contact">{e(d['cta_primary'])}</a></div>
 <div class="byline"><div class="av"></div><div>Reviewed by the Storebox team &nbsp;&bull;&nbsp; <span style="color:var(--brand)">[named author + LinkedIn to add]</span></div></div></div></section>
 """
-    return (HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body
-            +FOOT.format(col_t=d["footer_col"],rel=rel_links(d["related"])))
+    return HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body+FOOT.format(col_t=d["footer_col"],rel=rel_links(d["related"]))
+
+def learn_example(ex):
+    if ex["type"]=="pack":
+        rows="".join(f'<div class="ex-row"><div class="mapsq"></div><div><div class="nm">{e(n)}</div><div class="meta"><span class="stars">{e(st)}</span> &nbsp;{e(mt)}</div></div></div>' for n,st,mt in ex["rows"])
+        inner=f'<div class="ex-card"><div class="ex-head">{e(ex["head"])}</div>{rows}</div>'
+    elif ex["type"]=="ai":
+        inner=f'<div class="ex-card"><div class="ex-head">AI answer</div><div class="ex-q">{e(ex["q"])}</div><div class="ex-a">{e(ex["a"])}</div><div class="ex-src">Sources: <b>{e(ex["src"])}</b></div></div>'
+    else:
+        inner=f'<div class="ex-code">{ex["code"]}</div>'
+    return (f'<section class="section alt"><div class="wrap"><div class="g2" style="display:grid;gap:40px;align-items:center">'
+            f'<div><div class="eyebrow">Example</div><h2 style="margin:8px 0 12px">{e(ex["h2"])}</h2><p class="muted">{e(ex["p"])}</p></div>'
+            f'<div>{inner}</div></div></div></section>')
 
 def render_learn(d):
     how="".join(f'<div class="card"><div class="ic">{icon(ic)}</div><h3>{e(h)}</h3><p>{e(p)}</p></div>' for ic,h,p in d["how"])
@@ -168,29 +216,24 @@ def render_learn(d):
 <div><div class="eyebrow">In short</div><h2 style="margin:8px 0 12px">{e(d['short_h2'])}</h2><p class="muted">{e(d['short_p'])}</p></div>
 <div class="card" style="background:var(--bg1)"><div class="eyebrow">How it works</div><p class="muted" style="margin:10px 0 0">{e(d['how_intro'])}</p></div>
 </div></div></section>
-<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">In practice</div><h2>{e(d['how_h2'])}</h2></div><div class="grid g3">{how}</div></div></section>
-<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">Easily confused</div><h2>{e(d['table']['h2'])}</h2></div>
+{learn_example(d['example'])}
+<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">In practice</div><h2>{e(d['how_h2'])}</h2></div><div class="grid g3">{how}</div></div></section>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">Easily confused</div><h2>{e(d['table']['h2'])}</h2></div>
 <table class="ltable"><thead><tr>{thead}</tr></thead><tbody>{rows}</tbody></table></div></section>
-<section class="section alt"><div class="wrap"><div class="g2" style="display:grid;gap:40px;align-items:start">
+<section class="section"><div class="wrap"><div class="g2" style="display:grid;gap:40px;align-items:start">
 <div><div class="eyebrow">Check yours</div><h2 style="margin:8px 0 16px">{e(d['check_h2'])}</h2><ul class="checklist">{checks}</ul></div>
 <div><div class="eyebrow">Common mistakes</div><h2 style="margin:8px 0 16px">{e(d['mistakes_h2'])}</h2><div class="grid" style="gap:14px">{mistakes}</div></div>
 </div></div></section>
-<section class="section"><div class="wrap"><div class="section-head"><div class="eyebrow">FAQ</div><h2>Common questions</h2></div><div class="faq">{faq}</div></div></section>
-<section class="section alt"><div class="wrap"><div class="band"><h2>{e(d['cta_h2'])}</h2><p>{e(d['cta_p'])}</p>
+<section class="section alt"><div class="wrap"><div class="section-head"><div class="eyebrow">FAQ</div><h2>Common questions</h2></div><div class="faq">{faq}</div></div></section>
+<section class="section"><div class="wrap"><div class="band"><h2>{e(d['cta_h2'])}</h2><p>{e(d['cta_p'])}</p>
 <a class="btn btn-primary" href="https://www.storebox.ai/contact">Get a free proposal</a></div>
 <div class="byline"><div class="av"></div><div>Reviewed by the Storebox team &nbsp;&bull;&nbsp; <span style="color:var(--brand)">[named author + LinkedIn to add]</span></div></div></div></section>
 """
-    return (HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body
-            +FOOT.format(col_t="Learn",rel=rel_links(d["related"])))
+    return HEAD.format(title=d["title"],desc=d["desc"],css=CSS)+body+FOOT.format(col_t="Learn",rel=rel_links(d["related"]))
 
-# ---- import content ----
 from content import SEOFOR, LEARN
-
 def main():
-    for d in SEOFOR:
-        (HERE/f"{d['slug']}.html").write_text(render_seofor(d)); print("seo-for:",d['slug'])
-    for d in LEARN:
-        (HERE/f"{d['slug']}.html").write_text(render_learn(d)); print("learn:  ",d['slug'])
+    for d in SEOFOR: (HERE/f"{d['slug']}.html").write_text(render_seofor(d)); print("seo-for:",d['slug'])
+    for d in LEARN: (HERE/f"{d['slug']}.html").write_text(render_learn(d)); print("learn:  ",d['slug'])
     print("done")
-
 if __name__=="__main__": main()
